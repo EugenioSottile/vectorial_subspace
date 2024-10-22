@@ -14,9 +14,10 @@ class VectorialSubspace:
             self,
             metric: str = "cosine",
             threshold: float = 0.95,
-            minimization_step: float = 0.01,
+            maxiter: int = 1000,
             window_size: int = 16,
             window_step: int = 8,
+            interval_width: float = 0.5,
             method: str = "COBYLA",
             intervals_reducing_type: str = "disjunction",
             expand_factor: float = 1,
@@ -38,9 +39,10 @@ class VectorialSubspace:
 
         self.metric = metric
         self.threshold = threshold
-        self.minimization_step = minimization_step
+        self.maxiter = maxiter
         self.window_size = window_size
         self.window_step = window_step
+        self.interval_width = interval_width
         self.method = method
         self.intervals_reducing_type = intervals_reducing_type
         self.expand_factor = expand_factor
@@ -54,6 +56,8 @@ class VectorialSubspace:
         self.__tensor_sliced = np.array([])
         self.__start = 0
         self.__end = 0
+        self.__direction = 0
+        self.__len_tensor = 0
 
     def optimize(
             self,
@@ -62,6 +66,7 @@ class VectorialSubspace:
 
         #self.tensor = tensor
         len_tensor = len(tensor)
+        self.__len_tensor = len_tensor
         if self.verbose == 1:
             progress_bar = self.__ProgressBar(len_tensor)
             progress_bar.update(self.window_step)
@@ -95,35 +100,24 @@ class VectorialSubspace:
                 progress_bar.update(self.window_step)
 
         for i in range(len_tensor):
-            min_tuple = min(intervals_reduced_list[i], key=lambda x: x[0])
-            max_tuple = max(intervals_reduced_list[i], key=lambda x: x[1])
-            if tensor[i] < min_tuple[0]:
-                tuple_tensor = (tensor[i] - (max_tuple[1] - min_tuple[0]), tensor[i])
-                intervals_reduced_list[i].append(tuple_tensor)
-                """tuple_tensor = (tensor[i], tensor[i])
-                intervals_reduced_list[i].append(tuple_tensor)"""
-            elif tensor[i] > max_tuple[1]:
-                tuple_tensor = (tensor[i], tensor[i] + (max_tuple[1] - min_tuple[0]))
-                intervals_reduced_list[i].append(tuple_tensor)
+            interval_list = intervals_reduced_list[i]
 
-            """if tensor[i] < min_tuple[0]:
-                tuple_tensor = list(min_tuple)
-                tuple_tensor[1] = tensor[i]
-                tuple_tensor[0] -= abs(tuple_tensor[1] - tuple_tensor[0])
-                tuple_tensor = tuple(tuple_tensor)
-                intervals_reduced_list[i].append(tuple_tensor)
-            elif tensor[i] > max_tuple[1]:
-                tuple_tensor = list(max_tuple)
-                tuple_tensor[0] = tensor[i]
-                tuple_tensor[1] += abs(tuple_tensor[1] - tuple_tensor[0])
-                tuple_tensor = tuple(tuple_tensor)
-                intervals_reduced_list[i].append(tuple_tensor)"""
+            min_ = min(interval_list, key=lambda x: x[0])[0]
+            max_ = max(interval_list, key=lambda x: x[1])[1]
+
+            if min_ > tensor[i]:
+                tuple_min = (float(tensor[i]), min_)
+                interval_list.append(tuple_min)
+            elif max_ < tensor[i]:
+                tuple_max = (max_, float(tensor[i]))
+                interval_list.append(tuple_max)
+
 
         reduced_intervals = self.__reduce_intervals(
             intervals_reduced_list,
             intervals_reducing_type=self.intervals_reducing_type
         )
-        if self.expand_factor > 0:
+        """if self.expand_factor > 0:
             expanded_intervals = [
                 [
                     self.__expand_interval(
@@ -135,18 +129,11 @@ class VectorialSubspace:
                 for interval in reduced_intervals
             ]
         else:
-            expanded_intervals = reduced_intervals
+            expanded_intervals = reduced_intervals"""
 
-        """for i in range(len_tensor):
-            for j in range(len(expanded_intervals[i])):
-                expanded_intervals[i][j] = list(expanded_intervals[i][j])
-                if expanded_intervals[i][j][0] > tensor[i]:
-                    expanded_intervals[i][j][0] = tensor[i]
-                elif expanded_intervals[i][j][1] < tensor[i]:
-                    expanded_intervals[i][j][1] = tensor[i] + 1
-                expanded_intervals[i][j] = tuple(expanded_intervals[i][j])"""
 
-        self.intervals = expanded_intervals
+
+        self.intervals = reduced_intervals
 
     def __get_window_subspace(
             self,
@@ -155,32 +142,22 @@ class VectorialSubspace:
         len_tensor = len(tensor)
         intervals = [list() for _ in range(len_tensor)]
 
-        start = self.threshold + self.minimization_step
-        end = 1 + self.minimization_step
-        arange_ = arange(start, end, self.minimization_step)
-        for _ in arange_:
-            minimized_vector1 = self.__minimize_vector(tensor)
-            self.__minimization_step_count += 1
-            minimized_vector2 = self.__minimize_vector(tensor)
-            for i in range(self.window_size):
-                global_index = i + self.__start
-                if global_index in self.fixed_constraints:
-                    interval = [float(tensor[i]), float(tensor[i])]
-                else:
-                    interval = [float(minimized_vector1[i]), float(minimized_vector2[i])]
-                interval.sort()
-                interval = tuple(interval)
-                intervals[i].append(interval)
-        self.__minimization_step_count = 0
+        self.__direction = 0
+        minimized_vector1 = self.__minimize_vector(tensor)
+        self.__direction = 1
+        minimized_vector2 = self.__minimize_vector(tensor)
 
+        for i in range(self.window_size):
+
+            global_index = i + self.__start
+            if global_index in self.fixed_constraints:
+                interval = [float(tensor[i]), float(tensor[i])]
+            else:
+                interval = [float(minimized_vector1[i]), float(minimized_vector2[i])]
+            interval.sort()
+            interval = tuple(interval)
+            intervals[i].append(interval)
         return intervals
-
-    """
-            for index in self.fixed_constraints:
-            if self.__start <= index < self.__end:
-                sliced_index = index - self.__start
-                tensor[sliced_index] = self.__tensor_sliced[sliced_index]
-    """
 
     def __reduce_intervals(
             self,
@@ -229,12 +206,61 @@ class VectorialSubspace:
             self,
             tensor: np.ndarray = np.array([])
     ):
-        #tensors = np.concatenate((tensor, tensor), axis=0)
-        method = self.method
+
+        if self.__direction == 0:
+            """constraints_limits = [
+                {
+                    'type': 'ineq',
+                    'fun': lambda x, i=i: tensor[i] - x[i]}
+                for i in range(len(tensor))]"""
+
+            constraints_limits = [
+                {
+                    'type': 'ineq',
+                    'fun': lambda x, i=i: tensor[i] - x[i] - self.interval_width
+                }
+                for i in range(len(tensor))
+            ]
+
+            """constraints_width = [
+                {
+                    'type': 'ineq',
+                    'fun': lambda x, i=i: x[i] - tensor[i] - threshold_width}
+                for i in range(len(tensor))]"""
+        elif self.__direction == 1:
+            """constraints_limits = [
+                {
+                    'type': 'ineq',
+                    'fun': lambda x, i=i: x[i] - tensor[i]}
+                for i in range(len(tensor))]
+"""
+            constraints_limits = [
+                {
+                    'type': 'ineq',
+                    'fun': lambda x, i=i: x[i] - tensor[i] + self.interval_width
+                }
+                for i in range(len(tensor))
+            ]
+
+            """constraints_width = [
+                {
+                    'type': 'ineq',
+                    'fun': lambda x, i=i: tensor[i] - x[i] + threshold_width}
+                for i in range(len(tensor))]"""
+        #constraints = constraints_limits.extend(constraints_width)
+        constraints = constraints_limits
+
         result = minimize(
             self.__objective_function,
             tensor,
-            method=method
+            method=self.method,
+            options={
+                'maxiter': self.maxiter,
+                'tol': 1e-2,
+                #'rhobeg': 0.4,
+                #'rhoend': 1e-6
+            },
+            constraints=constraints
         )
         return result.x
 
@@ -243,19 +269,10 @@ class VectorialSubspace:
             tensor: np.ndarray = np.array([])
     ):
 
-        threshold = (self.__minimization_step_count * self.minimization_step) + self.threshold
-
-        if threshold == 1:
-            threshold = 0.999
-
-        #print(self.fixed_constraints)
         for index in self.fixed_constraints:
             if self.__start <= index < self.__end:
                 sliced_index = index - self.__start
                 tensor[sliced_index] = self.__tensor_sliced[sliced_index]
-
-        """for i in range(len(tensor)):
-            tensor[i] += random.uniform(-0.1, 0.1)"""
 
         similarity = 0
         if self.metric == "cosine":
@@ -269,7 +286,7 @@ class VectorialSubspace:
         else:
             pass  # launch exception (to define)
 
-        return abs(similarity - threshold)
+        return abs(similarity - self.threshold)
 
     def __expand_interval(
             self,
@@ -277,6 +294,7 @@ class VectorialSubspace:
             factor: float,
             similarity: float,
     ) -> Tuple[float] :
+
         min_val, max_val = interval
         interval_length = max_val - min_val
 

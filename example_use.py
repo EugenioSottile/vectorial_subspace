@@ -5,7 +5,7 @@ import numpy as np
 
 from vectorial_subspace import VectorialSubspace
 
-similarity_value = 0.85
+similarity_value = 0.9
 maxiter = 1000
 window_size = 16
 step_window = int(window_size / 2)

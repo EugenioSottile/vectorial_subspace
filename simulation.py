@@ -60,7 +60,9 @@ maxiter = 1000
 window_size = 32
 step_window = int(window_size / 2)
 #step_window = 6
-interval_width = 0.7
+interval_width = 0.6
+random_step = 20000
+random_interval = (-20, 20)
 
 """constraints = []
 for i in range(0, N, 4):
@@ -75,6 +77,8 @@ vectorial_subspace = VectorialSubspace(
     window_step=step_window,
     method="COBYLA",
     intervals_reducing_type="union",
+    random_step=random_step,
+    random_interval=random_interval,
     expand_factor=0,
     #fixed_constraints=tuple(constraints),
     verbose=1

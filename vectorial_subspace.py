@@ -1,6 +1,7 @@
 import random
 import time
 from pprint import pprint
+from tkinter.ttk import Progressbar
 from typing import List, Tuple, Optional
 import numpy as np
 from numpy import arange
@@ -22,6 +23,8 @@ class VectorialSubspace:
             intervals_reducing_type: str = "disjunction",
             expand_factor: float = 1,
             fixed_constraints: Tuple = (),
+            random_step: int = 1000,
+            shift_value: float = 1.0,
             verbose: int = 1
     ):
 
@@ -47,6 +50,8 @@ class VectorialSubspace:
         self.intervals_reducing_type = intervals_reducing_type
         self.expand_factor = expand_factor
         self.fixed_constraints = fixed_constraints
+        self.random_step = random_step
+        self.shift_value = shift_value
         self.verbose = verbose
 
         #self.tensor = np.array([])
@@ -112,6 +117,11 @@ class VectorialSubspace:
                 tuple_max = (max_, float(tensor[i]))
                 interval_list.append(tuple_max)
 
+        if self.random_step > 0:
+            intervals_reduced_list = self.__random_tuning(
+                intervals_reduced_list,
+                tensor=tensor
+            )
 
         reduced_intervals = self.__reduce_intervals(
             intervals_reduced_list,
@@ -201,6 +211,50 @@ class VectorialSubspace:
             merged_intervals_list = [merged_intervals, ]
             reduced_intervals.append(merged_intervals_list)
         return reduced_intervals
+
+    def __random_tuning(
+            self,
+            intervals: List[List[Tuple[float]]],
+            tensor: np.ndarray = np.array([]),
+    ) -> List[List[Tuple[float]]]:
+
+        random.seed(self.__len_tensor)
+        intervals_ = intervals.copy()
+        tensor = np.array([tensor, ])
+        if self.verbose == 1:
+            progress_bar = self.__ProgressBar(self.random_step, string_message="Random tuning")
+        for i in range(self.random_step):
+            random_tensor = []
+            for k in range(self.__len_tensor):
+                interval_ = random.choice(intervals_[k])
+                #random.seed(interval_[0] - self.shift_value + interval_[1] + self.shift_value)
+                random_value_interval_ = random.uniform(interval_[0] - self.shift_value, interval_[1] + self.shift_value)
+                """mode = random.choice(interval_)
+                random_value_interval_ = random.triangular(
+                    interval_[0] - self.shift_value,
+                    interval_[1] + self.shift_value,
+                    mode=mode
+                )"""
+                random_tensor.append(random_value_interval_)
+            random_tensor = np.array([random_tensor, ])
+            similarity = cosine_similarity(tensor, random_tensor)[0][0]
+            if similarity >= self.threshold:
+                for j in range(self.__len_tensor):
+                    flag_not_included = False
+                    for interval in intervals[j]:
+                        if not (interval[0] <= random_tensor[0][j] <= interval[1]):
+                            flag_not_included = True
+                            break
+                    if flag_not_included:
+                        value_left = float(random_tensor[0][j]) - self.shift_value
+                        value_right = float(random_tensor[0][j]) + self.shift_value
+                        tuple_new_interval = (value_left, value_right)
+                        intervals_[j].append(tuple_new_interval)
+            if self.verbose == 1:
+                progress_bar.update(1)
+        return intervals_
+
+
 
     def __minimize_vector(
             self,

@@ -8,8 +8,8 @@ from sklearn.metrics.pairwise import cosine_similarity
 from vectorial_subspace import VectorialSubspace
 
 
-N = 768
-#tensor_target = np.random.randn(N)
+N = 250
+tensor_target = np.random.randn(N)
 
 #tensor_target = np.random.randn(N)
 """tensor_target = [
@@ -23,7 +23,7 @@ N = 768
     0.04, 1.74, 0.18, 0.83,
     0.04, 1.05, -1.15, -0.02
 ]"""
-tensor_target = [
+"""tensor_target = [
     0.1027, -1.7974, 0.2170, 0.1519,
     -0.1194, -2.3348, -1.0825, 0.0100,
     0.1068, -1.6865, -1.9371, -0.1648,
@@ -49,7 +49,7 @@ tensor_target = [
     -0.1194, 2.3353, 1.0812, 0.0100,
     0.1068, 1.6868, 1.9365, 0.1681
 ]
-N = len(tensor_target)
+N = len(tensor_target)"""
 """for i in range(N):
     tensor_target[i] *= 10"""
 #tensor_target = tensor_target * 10
@@ -65,7 +65,7 @@ step_window = int(window_size / 2)
 # step_window = 6
 interval_width = 0.0
 #random_step = 10000
-random_step = 10000
+random_step = 0
 shift_value = 0.2
 
 vectorial_subspace = VectorialSubspace(
@@ -141,3 +141,6 @@ for i in range(0, N, 4):
     y_index = i + 2
     z_index = i + 3
     print(random_tensor[0][bfac_index], random_tensor[0][x_index], random_tensor[0][y_index], random_tensor[0][z_index])"""
+
+
+

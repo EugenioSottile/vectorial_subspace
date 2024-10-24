@@ -25,6 +25,7 @@ class VectorialSubspace:
             fixed_constraints: Tuple = (),
             random_step: int = 1000,
             shift_value: float = 1.0,
+            add_penalty: bool = True,
             verbose: int = 1
     ):
 
@@ -52,6 +53,7 @@ class VectorialSubspace:
         self.fixed_constraints = fixed_constraints
         self.random_step = random_step
         self.shift_value = shift_value
+        self.add_penalty = add_penalty
         self.verbose = verbose
 
         #self.tensor = np.array([])
@@ -74,7 +76,8 @@ class VectorialSubspace:
         self.__len_tensor = len_tensor
         if self.verbose == 1:
             progress_bar = self.__ProgressBar(len_tensor)
-            progress_bar.update(self.window_step)
+            if self.window_size != self.window_step:
+                progress_bar.update(self.window_step)
 
         intervals_reduced_list = [list() for _ in range(len_tensor)]
         for i in range(0, len_tensor - self.window_size + 1, self.window_step):
@@ -154,6 +157,7 @@ class VectorialSubspace:
 
         self.__direction = 0
         minimized_vector1 = self.__minimize_vector(tensor)
+
         self.__direction = 1
         minimized_vector2 = self.__minimize_vector(tensor)
 
@@ -340,7 +344,18 @@ class VectorialSubspace:
         else:
             pass  # launch exception (to define)
 
-        return abs(similarity - self.threshold)
+        penalty = 0
+        if self.add_penalty:
+            if self.__direction == 0:
+                for i in range(self.window_size):
+                    if tensor[i] >= self.__tensor_sliced[i]:
+                        penalty += (tensor[i] - self.__tensor_sliced[i]) + 0.1
+            elif self.__direction == 1:
+                for i in range(self.window_size):
+                    if tensor[i] <= self.__tensor_sliced[i]:
+                        penalty += (self.__tensor_sliced[i] - tensor[i]) + 0.1
+
+        return abs(similarity - self.threshold) + penalty
 
     def __expand_interval(
             self,

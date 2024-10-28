@@ -23,7 +23,7 @@ class VectorialSubspace:
             intervals_reducing_type: str = "disjunction",
             expand_factor: float = 1,
             fixed_constraints: Tuple = (),
-            random_step: int = 1000,
+            random_steps: int = 1000,
             shift_value: float = 1.0,
             add_penalty: bool = True,
             verbose: int = 1
@@ -51,7 +51,7 @@ class VectorialSubspace:
         self.intervals_reducing_type = intervals_reducing_type
         self.expand_factor = expand_factor
         self.fixed_constraints = fixed_constraints
-        self.random_step = random_step
+        self.random_step = random_steps
         self.shift_value = shift_value
         self.add_penalty = add_penalty
         self.verbose = verbose
@@ -306,6 +306,7 @@ class VectorialSubspace:
                     'fun': lambda x, i=i: tensor[i] - x[i] + threshold_width}
                 for i in range(len(tensor))]"""
         #constraints = constraints_limits.extend(constraints_width)
+
         constraints = constraints_limits
 
         result = minimize(
@@ -349,11 +350,17 @@ class VectorialSubspace:
             if self.__direction == 0:
                 for i in range(self.window_size):
                     if tensor[i] >= self.__tensor_sliced[i]:
-                        penalty += (tensor[i] - self.__tensor_sliced[i]) + 0.1
+                        difference = (tensor[i] - self.__tensor_sliced[i])
+                        penalty += difference + 0.1
+                        if difference < self.interval_width:
+                            penalty += (self.interval_width - difference)
             elif self.__direction == 1:
                 for i in range(self.window_size):
                     if tensor[i] <= self.__tensor_sliced[i]:
-                        penalty += (self.__tensor_sliced[i] - tensor[i]) + 0.1
+                        difference = (self.__tensor_sliced[i] - tensor[i])
+                        penalty += difference + 0.1
+                        if difference < self.interval_width:
+                            penalty += (self.interval_width - difference)
 
         return abs(similarity - self.threshold) + penalty
 

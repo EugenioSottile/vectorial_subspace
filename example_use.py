@@ -5,22 +5,28 @@ import numpy as np
 
 from vectorial_subspace import VectorialSubspace
 
-similarity_value = 0.9
-maxiter = 1000
-window_size = 16
-step_window = int(window_size / 2)
-interval_width = 1
+similarity_value = 0.8
+maxiter = 10000
+window_size = 2
+step_window = 2
+#step_window = 6
+interval_width = 0.0
+random_step = 0
+
+"""constraints = []
+for i in range(0, N, 4):
+    constraints.append(i)"""
 
 vectorial_subspace = VectorialSubspace(
     metric="cosine",
     threshold=similarity_value,
     maxiter=maxiter,
+    interval_width=interval_width,
     window_size=window_size,
     window_step=step_window,
-    interval_width=interval_width,
     method="COBYLA",
     intervals_reducing_type="union",
-    expand_factor=0,
+    random_steps=random_step,
     verbose=1
 )
 

@@ -7,8 +7,8 @@ from vectorial_subspace import VectorialSubspace
 
 similarity_value = 0.8
 maxiter = 10000
-window_size = 2
-step_window = 2
+window_size = 10
+step_window = 3
 #step_window = 6
 interval_width = 0.0
 random_step = 0

@@ -7,9 +7,9 @@ from matplotlib import pyplot as plt
 from sklearn.metrics.pairwise import cosine_similarity
 
 from vectorial_subspace import VectorialSubspace
-from vectorial_subspace_tensorflow import VectorialSubspaceTF
+from vectorial_subspace_deep import VectorialSubspaceDeep
 
-N = 768
+N = 8
 tensor_target = np.random.randn(N)
 #tensor_target = [1.1, -2.6, 1.6]
 tensor_target = np.array(tensor_target)
@@ -62,31 +62,32 @@ to_plot = False
 
 
 similarity_value = 0.9
-maxiter = 1000
-window_size = 128
-step_window = 64
+maxiter = 10000
+window_size = 4
+step_window = 2
 #step_window = 6
 interval_width = 0.25
 random_step = 0
+
+deep_level = 100000000000
 
 """constraints = []
 for i in range(0, N, 4):
     constraints.append(i)"""
 
-epochs = 15
-learning_rate = 0.1
-
-vectorial_subspace = VectorialSubspaceTF(
-    epochs=epochs,
-    learning_rate=learning_rate,
+vectorial_subspace = VectorialSubspaceDeep(
+    deep_level=deep_level,
     metric="cosine",
     threshold=similarity_value,
+    maxiter=maxiter,
     interval_width=interval_width,
     window_size=window_size,
     window_step=step_window,
-    intervals_reducing_type="union",
+    method="COBYLA",
+    intervals_reducing_type="disjunction",
     random_steps=random_step,
     add_penalty=True,
+    expand_factor=0,
     verbose=1
 )
 
@@ -94,10 +95,10 @@ vectorial_subspace.optimize(tensor_target)
 pprint(vectorial_subspace.intervals)
 intervals = vectorial_subspace.intervals
 
-differences = [tuple_[0][1] - tuple_[0][0] for tuple_ in vectorial_subspace.intervals]
-mean_differences = mean(differences)
+"""differences = [tuple_[0][1] - tuple_[0][0] for tuple_ in vectorial_subspace.intervals]
+mean_differences = mean(differences)"""
 #print(differences)
-print(mean_differences)
+#print(mean_differences)
 
 flag = True
 tensor_target = np.array([tensor_target, ])
@@ -106,10 +107,13 @@ num_iter = 0
 min_value = 100
 max_value = 0
 print()
-for _ in range(10000):
+for _ in range(100000):
     num_iter += 1
     random_tensor = []
-    for ranges in intervals:
+
+    intervals_ = random.choice(intervals)
+
+    for ranges in intervals_:
         range_ = random.choice(ranges)
         # random_value_range = random.uniform(range_[0], range_[1])
         mode = (range_[0] * 1 + range_[1] * 1) / 2

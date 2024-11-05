@@ -88,11 +88,11 @@ vectorial_subspace = VectorialSubspaceDeep(
     random_steps=random_step,
     add_penalty=True,
     expand_factor=0,
-    verbose=1
+    verbose=0
 )
 
 vectorial_subspace.optimize(tensor_target)
-pprint(vectorial_subspace.intervals)
+#pprint(vectorial_subspace.intervals)
 intervals = vectorial_subspace.intervals
 
 """differences = [tuple_[0][1] - tuple_[0][0] for tuple_ in vectorial_subspace.intervals]

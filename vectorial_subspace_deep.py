@@ -4,6 +4,7 @@ import time
 from pprint import pprint
 from typing import List, Tuple
 import numpy as np
+from absl.logging import level_warn
 from numpy import arange
 from scipy.optimize import minimize
 from sklearn.metrics.pairwise import cosine_similarity
@@ -81,7 +82,22 @@ class VectorialSubspaceDeep:
             if self.window_size != self.window_step:
                 progress_bar.update(self.window_step)"""
 
-        level_constraints = [combination for r in range(1, self.__len_tensor) for combination in itertools.combinations(range(self.__len_tensor), r)]
+        level_constraints = []
+        """level_constraints = [
+            combination 
+            for r in range(1, self.__len_tensor) 
+            for combination in itertools.combinations(range(self.__len_tensor), r)
+            if 
+        ]"""
+        count_combination = 0
+        for r in range(1, self.__len_tensor):
+            for combination in itertools.combinations(range(self.__len_tensor), r):
+                level_constraints.append(combination)
+                count_combination += 1
+                if count_combination >= self.deep_level:
+                    break
+            if count_combination >= self.deep_level:
+                break
         level_constraints_0 = [tuple(range(self.__len_tensor)), ]
         level_constraints = level_constraints_0 + level_constraints
 
@@ -98,6 +114,11 @@ class VectorialSubspaceDeep:
             self.__level_constraints = level_constraints[level]
 
             intervals_reduced_list_level = [list() for _ in range(len_tensor)]
+
+            """step = self.window_step
+            if self.window_step == 0 and self.window_size == self.__len_tensor:
+                step = 1"""
+
             for i in range(0, len_tensor - self.window_size + 1, self.window_step):
                 self.__start = i
                 self.__end = i + self.window_size
@@ -382,7 +403,7 @@ class VectorialSubspaceDeep:
                     else:
                         difference = abs(tensor[i] - self.__tensor_sliced[i])
                         if difference >= 0.1:
-                            penalty += 1 + (difference * 100)
+                            penalty += 1 + (difference * 1)
             elif self.__direction == 1:
                 for i in range(self.window_size):
                     global_index = i + self.__start
@@ -395,7 +416,7 @@ class VectorialSubspaceDeep:
                     else:
                         difference = abs(tensor[i] - self.__tensor_sliced[i])
                         if difference >= 0.1:
-                            penalty += 1 + (difference * 100)
+                            penalty += 1 + (difference * 1)
 
         return abs(similarity - self.threshold) + penalty
 

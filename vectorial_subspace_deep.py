@@ -178,6 +178,13 @@ class VectorialSubspaceDeep:
                     tuple_max = (max_, float(tensor[i]))
                     interval_list.append(tuple_max)
 
+            if self.random_step > 0:
+                intervals_reduced_list_level = self.__random_tuning(
+                    intervals_reduced_list_level,
+                    tensor=tensor
+                )
+
+
             reduced_intervals_level = self.__reduce_intervals(
                 intervals_reduced_list_level,
                 intervals_reducing_type=self.intervals_reducing_type
@@ -281,21 +288,25 @@ class VectorialSubspaceDeep:
         random.seed(self.__len_tensor)
         intervals_ = intervals.copy()
         tensor = np.array([tensor, ])
-        if self.verbose == 1:
-            progress_bar = self.__ProgressBar(self.random_step, string_message="Random tuning")
+        """if self.verbose == 1:
+            progress_bar = self.__ProgressBar(self.random_step, string_message="Random tuning")"""
         for i in range(self.random_step):
             random_tensor = []
             for k in range(self.__len_tensor):
-                interval_ = random.choice(intervals_[k])
-                #random.seed(interval_[0] - self.shift_value + interval_[1] + self.shift_value)
-                random_value_interval_ = random.uniform(interval_[0] - self.shift_value, interval_[1] + self.shift_value)
-                """mode = random.choice(interval_)
-                random_value_interval_ = random.triangular(
-                    interval_[0] - self.shift_value,
-                    interval_[1] + self.shift_value,
-                    mode=mode
-                )"""
-                random_tensor.append(random_value_interval_)
+                if k in self.__level_constraints:
+                    interval_ = random.choice(intervals_[k])
+                    # random.seed(interval_[0] - self.shift_value + interval_[1] + self.shift_value)
+                    random_value_interval_ = random.uniform(interval_[0] - self.shift_value,
+                                                            interval_[1] + self.shift_value)
+                    """mode = random.choice(interval_)
+                    random_value_interval_ = random.triangular(
+                        interval_[0] - self.shift_value,
+                        interval_[1] + self.shift_value,
+                        mode=mode
+                    )"""
+                    random_tensor.append(random_value_interval_)
+                else:
+                    random_tensor.append(tensor[0][k])
             random_tensor = np.array([random_tensor, ])
             similarity = cosine_similarity(tensor, random_tensor)[0][0]
             if similarity >= self.threshold:
@@ -310,8 +321,8 @@ class VectorialSubspaceDeep:
                         value_right = float(random_tensor[0][j]) + self.shift_value
                         tuple_new_interval = (value_left, value_right)
                         intervals_[j].append(tuple_new_interval)
-            if self.verbose == 1:
-                progress_bar.update(1)
+            """if self.verbose == 1:
+                progress_bar.update(1)"""
         return intervals_
 
 

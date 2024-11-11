@@ -65,11 +65,14 @@ to_plot = False
 
 similarity_value = 0.9
 maxiter = 1000
-window_size = 10
+window_size = 8
 step_window = 1
 #step_window = 6
 interval_width = 0.0
-random_step = 0
+
+shift_value = 0.1
+random_step = 100
+
 
 deep_level = 201
 
@@ -90,6 +93,7 @@ vectorial_subspace = VectorialSubspaceDeep(
     random_steps=random_step,
     add_penalty=True,
     expand_factor=0,
+    shift_value=shift_value,
     verbose=1
 )
 print(len(tensor_target))

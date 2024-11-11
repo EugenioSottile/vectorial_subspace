@@ -397,26 +397,26 @@ class VectorialSubspaceDeep:
                     if global_index in self.__level_constraints:
                         if tensor[i] >= self.__tensor_sliced[i]:
                             difference = (tensor[i] - self.__tensor_sliced[i])
-                            penalty += difference + 0.1
+                            penalty += difference * 10
                             if difference < self.interval_width:
                                 penalty += (self.interval_width - difference)
                     else:
                         difference = abs(tensor[i] - self.__tensor_sliced[i])
                         if difference >= 0.1:
-                            penalty += 1 + (difference * 1)
+                            penalty += 0.1 + (difference * 1)
             elif self.__direction == 1:
                 for i in range(self.window_size):
                     global_index = i + self.__start
                     if global_index in self.__level_constraints:
                         if tensor[i] <= self.__tensor_sliced[i]:
                             difference = (self.__tensor_sliced[i] - tensor[i])
-                            penalty += difference + 0.1
+                            penalty += difference * 10
                             if difference < self.interval_width:
                                 penalty += (self.interval_width - difference)
                     else:
                         difference = abs(tensor[i] - self.__tensor_sliced[i])
                         if difference >= 0.1:
-                            penalty += 1 + (difference * 1)
+                            penalty += 0.1 + (difference * 1)
 
         return abs(similarity - self.threshold) + penalty
 

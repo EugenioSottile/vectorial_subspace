@@ -6,6 +6,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from sklearn.metrics.pairwise import cosine_similarity
 
+from random_vectorial_subspace_deep import RandomVectorialSubspaceDeep
 from vectorial_subspace import VectorialSubspace
 from vectorial_subspace_deep import VectorialSubspaceDeep
 
@@ -80,19 +81,11 @@ deep_level = 769
 for i in range(0, N, 4):
     constraints.append(i)"""
 
-vectorial_subspace = VectorialSubspaceDeep(
+vectorial_subspace = RandomVectorialSubspaceDeep(
     deep_level=deep_level,
     metric="cosine",
     threshold=similarity_value,
-    maxiter=maxiter,
-    interval_width=interval_width,
-    window_size=window_size,
-    window_step=step_window,
-    method="COBYLA",
     intervals_reducing_type="disjunction",
-    random_steps=random_step,
-    add_penalty=True,
-    expand_factor=0,
     shift_value=shift_value,
     verbose=1
 )

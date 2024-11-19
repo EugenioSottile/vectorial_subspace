@@ -1,13 +1,12 @@
 import random
 from pprint import pprint
 from statistics import mean
-
 import numpy as np
 from matplotlib import pyplot as plt
 from sklearn.metrics.pairwise import cosine_similarity
 
-from vectorial_subspace import VectorialSubspace
 from vectorial_subspace_deep import VectorialSubspaceDeep
+
 
 N = 768
 tensor_target = np.random.randn(N)
@@ -64,7 +63,7 @@ to_plot = False
 
 
 similarity_value = 0.9
-maxiter = 1000
+maxiter = 100
 window_size = 8
 step_window = 4
 #step_window = 6

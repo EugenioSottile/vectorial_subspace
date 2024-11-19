@@ -13,8 +13,8 @@ from vectorial_subspace_deep import VectorialSubspaceDeep
 N = 768
 tensor_target = np.random.randn(N)
 #tensor_target = [1.1, -2.6, 1.6]
-"""tensor_target = [ 1.23986063, -0.20750726, -0.23917009,  1.00732263, -2.51674204, 0.44675224,
- -0.59683159,  0.84636299, -1.85657777, -0.87969704]"""
+tensor_target = [ 1.23986063, -0.20750726, -0.23917009,  1.00732263, -2.51674204, 0.44675224,
+ -0.59683159,  0.84636299, -1.85657777, -0.87969704]
 tensor_target = np.array(tensor_target)
 print(tensor_target)
 to_plot = False
@@ -75,7 +75,7 @@ shift_value = 0.1
 random_step = 100
 
 
-deep_level = 769
+deep_level = 11
 
 """constraints = []
 for i in range(0, N, 4):
@@ -87,6 +87,7 @@ vectorial_subspace = RandomVectorialSubspaceDeep(
     threshold=similarity_value,
     intervals_reducing_type="disjunction",
     shift_value=shift_value,
+    random_step=random_step,
     verbose=1
 )
 print(len(tensor_target))

@@ -94,7 +94,6 @@ class RandomVectorialSubspaceDeep:
                 list_intervals.append(interval)
                 intervals.append(list_intervals)
 
-
             intervals = self.__random_tuning(intervals, tensor)
 
             reduced_intervals = self.__reduce_intervals(
@@ -118,6 +117,7 @@ class RandomVectorialSubspaceDeep:
         random.seed(self.__len_tensor)
         intervals_ = intervals.copy()
         tensor = np.array([tensor, ])
+
         """if self.verbose == 1:
             progress_bar = self.__ProgressBar(self.random_step, string_message="Random tuning")"""
         for i in range(self.random_step):
@@ -139,6 +139,7 @@ class RandomVectorialSubspaceDeep:
                     random_tensor.append(tensor[0][k])
             random_tensor = np.array([random_tensor, ])
             similarity = cosine_similarity(tensor, random_tensor)[0][0]
+
             if similarity >= self.threshold:
                 for j in range(self.__len_tensor):
                     flag_not_included = False

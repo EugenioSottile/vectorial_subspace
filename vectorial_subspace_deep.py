@@ -107,6 +107,7 @@ class VectorialSubspaceDeep:
             levels = num_constraints
 
         intervals = []
+        self.intervals = intervals
         if self.verbose == 1:
             progress_bar = self.__ProgressBar(levels)
         for level in range(levels):
@@ -209,7 +210,7 @@ class VectorialSubspaceDeep:
             intervals_reducing_type=self.intervals_reducing_type
         )"""
 
-        self.intervals = intervals
+
 
     def __get_window_subspace(
             self,
@@ -296,8 +297,20 @@ class VectorialSubspaceDeep:
                 if k in self.__level_constraints:
                     interval_ = random.choice(intervals_[k])
                     # random.seed(interval_[0] - self.shift_value + interval_[1] + self.shift_value)
-                    random_value_interval_ = random.uniform(interval_[0] - self.shift_value,
-                                                            interval_[1] + self.shift_value)
+
+                    random_interval = (interval_[0] - self.shift_value, interval_[1] + self.shift_value)
+
+                    mode = random.choice(random_interval)
+
+                    """random_value_interval_ = random.uniform(interval_[0] - self.shift_value,
+                                                            interval_[1] + self.shift_value)"""
+
+                    random_value_interval_ = random.triangular(
+                        random_interval[0],
+                        random_interval[1],
+                        mode=mode
+                    )
+
                     """mode = random.choice(interval_)
                     random_value_interval_ = random.triangular(
                         interval_[0] - self.shift_value,
@@ -326,11 +339,12 @@ class VectorialSubspaceDeep:
         return intervals_
 
 
-
     def __minimize_vector(
             self,
             tensor: np.ndarray = np.array([])
     ):
+
+        tensor_ = tensor.copy()
 
         if self.__direction == 0:
 
@@ -342,6 +356,12 @@ class VectorialSubspaceDeep:
                 for i in range(len(tensor)) if i in self.__level_constraints
             ]
 
+            if self.intervals:
+                for index in self.__level_constraints:
+                    if  self.__start <= index < self.__end:
+                        local_index = index - self.__start
+                        tensor_[local_index] = self.intervals[0][0][0][0]
+
         elif self.__direction == 1:
 
             constraints_limits = [
@@ -351,6 +371,12 @@ class VectorialSubspaceDeep:
                 }
                 for i in range(len(tensor)) if i in self.__level_constraints
             ]
+
+            if self.intervals:
+                for index in self.__level_constraints:
+                    if self.__start <= index < self.__end:
+                        local_index = index - self.__start
+                        tensor_[local_index] = self.intervals[0][0][0][1]
 
         """constraints_limits_equals = [
             {
@@ -362,10 +388,9 @@ class VectorialSubspaceDeep:
         constraints_limits = constraints_limits + constraints_limits_equals"""
 
         constraints = constraints_limits
-
         result = minimize(
             self.__objective_function,
-            tensor,
+            tensor_,
             method=self.method,
             options={
                 'maxiter': self.maxiter,

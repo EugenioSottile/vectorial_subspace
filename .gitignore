@@ -1,4 +1,5 @@
 __pycache__/
 .idea/
 temp.py
+temp2.py
 check_gpu.py

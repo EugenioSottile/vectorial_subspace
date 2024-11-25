@@ -69,8 +69,8 @@ step_window = 4
 #step_window = 6
 interval_width = 0.0
 
-shift_value = 0.1
-random_step = 100
+shift_value = 0.25
+random_step = 20
 
 
 deep_level = 769

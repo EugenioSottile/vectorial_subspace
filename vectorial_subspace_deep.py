@@ -75,6 +75,7 @@ class VectorialSubspaceDeep:
     ):
 
         #self.tensor = tensor
+
         len_tensor = len(tensor)
         self.__len_tensor = len_tensor
         """if self.verbose == 1:
@@ -298,9 +299,12 @@ class VectorialSubspaceDeep:
                     interval_ = random.choice(intervals_[k])
                     # random.seed(interval_[0] - self.shift_value + interval_[1] + self.shift_value)
 
-                    random_interval = (interval_[0] - self.shift_value, interval_[1] + self.shift_value)
-
-                    mode = random.choice(random_interval)
+                    if i % 2 == 0:
+                        random_interval = (interval_[0] - self.shift_value, interval_[1])
+                        mode = random_interval[0]
+                    else:
+                        random_interval = (interval_[0], interval_[1] + self.shift_value)
+                        mode = random_interval[1]
 
                     """random_value_interval_ = random.uniform(interval_[0] - self.shift_value,
                                                             interval_[1] + self.shift_value)"""
@@ -372,12 +376,14 @@ class VectorialSubspaceDeep:
                 for i in range(len(tensor)) if i in self.__level_constraints
             ]
 
+            #print(tensor_)
+            #print(self.__level_constraints)
             if self.intervals:
                 for index in self.__level_constraints:
                     if self.__start <= index < self.__end:
                         local_index = index - self.__start
                         tensor_[local_index] = self.intervals[0][0][0][1]
-
+            #print(tensor_)
         """constraints_limits_equals = [
             {
                 'type': 'eq',

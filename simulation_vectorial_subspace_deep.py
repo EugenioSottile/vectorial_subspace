@@ -80,7 +80,7 @@ deep_level = 769"""
 for i in range(0, N, 4):
     constraints.append(i)"""
 
-deep_level = 1
+deep_level = 769
 similarity_value = 0.8
 maxiter = 1000
 window_size = 8
@@ -89,7 +89,10 @@ step_window = 4
 interval_width = 0.0
 
 shift_value = 0.05
-random_step = 10000
+random_step = 0
+
+#method = "COBYLA"
+method = "L-BFGS-B"
 
 vectorial_subspace = VectorialSubspaceDeep(
     deep_level=deep_level,
@@ -99,7 +102,7 @@ vectorial_subspace = VectorialSubspaceDeep(
     interval_width=interval_width,
     window_size=window_size,
     window_step=step_window,
-    method="COBYLA",
+    method=method,
     intervals_reducing_type="disjunction",
     random_steps=random_step,
     add_penalty=True,

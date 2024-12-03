@@ -332,8 +332,8 @@ class VectorialSubspaceDeep:
                     random_tensor.append(random_value_interval_)
                 else:
                     random_tensor.append(tensor[0][k])
-                    min_ = min(intervals_, key=lambda x: x[0])[0]
-                    max_ = max(intervals_, key=lambda x: x[1])[1]
+                    min_ = min(intervals_[k], key=lambda x: x[0])[0]
+                    max_ = max(intervals_[k], key=lambda x: x[1])[1]
                     left_extreme_tensor.append(min_)
                     right_extreme_tensor.append(max_)
 
@@ -430,7 +430,7 @@ class VectorialSubspaceDeep:
             method=self.method,
             options={
                 'maxiter': self.maxiter,
-                'tol': 0.01,
+                #'tol': 0.01,
                 #'rhobeg': 0.4,
                 #'rhoend': 1e-6
             },

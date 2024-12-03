@@ -90,15 +90,16 @@ class VectorialSubspaceDeep:
             for combination in itertools.combinations(range(self.__len_tensor), r)
             if 
         ]"""
-        count_combination = 0
-        for r in range(1, self.__len_tensor):
-            for combination in itertools.combinations(range(self.__len_tensor), r):
-                level_constraints.append(combination)
-                count_combination += 1
+        if self.deep_level > 1:
+            count_combination = 0
+            for r in range(1, self.__len_tensor):
+                for combination in itertools.combinations(range(self.__len_tensor), r):
+                    level_constraints.append(combination)
+                    count_combination += 1
+                    if count_combination >= self.deep_level:
+                        break
                 if count_combination >= self.deep_level:
                     break
-            if count_combination >= self.deep_level:
-                break
         level_constraints_0 = [tuple(range(self.__len_tensor)), ]
         level_constraints = level_constraints_0 + level_constraints
 
@@ -294,17 +295,24 @@ class VectorialSubspaceDeep:
             progress_bar = self.__ProgressBar(self.random_step, string_message="Random tuning")"""
         for i in range(self.random_step):
             random_tensor = []
+            left_extreme_tensor = []
+            right_extreme_tensor = []
             for k in range(self.__len_tensor):
+
                 if k in self.__level_constraints:
                     interval_ = random.choice(intervals_[k])
                     # random.seed(interval_[0] - self.shift_value + interval_[1] + self.shift_value)
 
-                    if i % 2 == 0:
+                    module_k = k % 2
+                    if module_k == 0:
                         random_interval = (interval_[0] - self.shift_value, interval_[1])
                         mode = random_interval[0]
                     else:
                         random_interval = (interval_[0], interval_[1] + self.shift_value)
                         mode = random_interval[1]
+
+                    left_extreme_tensor.append(random_interval[0])
+                    right_extreme_tensor.append(random_interval[0])
 
                     """random_value_interval_ = random.uniform(interval_[0] - self.shift_value,
                                                             interval_[1] + self.shift_value)"""
@@ -324,9 +332,31 @@ class VectorialSubspaceDeep:
                     random_tensor.append(random_value_interval_)
                 else:
                     random_tensor.append(tensor[0][k])
+                    min_ = min(intervals_, key=lambda x: x[0])[0]
+                    max_ = max(intervals_, key=lambda x: x[1])[1]
+                    left_extreme_tensor.append(min_)
+                    right_extreme_tensor.append(max_)
+
+            #print(tensor.shape)
+
             random_tensor = np.array([random_tensor, ])
+            #print(random_tensor.shape)
             similarity = cosine_similarity(tensor, random_tensor)[0][0]
-            if similarity >= self.threshold:
+            #print(random_tensor)
+
+            left_extreme_tensor = np.array([left_extreme_tensor, ])
+            #print(left_extreme_tensor.shape)
+            similarity_left = cosine_similarity(tensor, left_extreme_tensor)[0][0]
+            #print(left_extreme_tensor)
+
+            right_extreme_tensor = np.array([right_extreme_tensor, ])
+            #print(right_extreme_tensor.shape)
+            similarity_right = cosine_similarity(tensor, right_extreme_tensor)[0][0]
+            #print(right_extreme_tensor)
+
+
+
+            if similarity >= self.threshold and similarity_left >= self.threshold and similarity_right >= self.threshold:
                 for j in range(self.__len_tensor):
                     flag_not_included = False
                     for interval in intervals[j]:
@@ -404,7 +434,7 @@ class VectorialSubspaceDeep:
                 #'rhobeg': 0.4,
                 #'rhoend': 1e-6
             },
-            constraints=constraints
+            #constraints=constraints
         )
         return result.x
 
